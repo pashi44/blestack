@@ -1,0 +1,61 @@
+cmake:
+  application:
+    configuration-dir: '/home/hadoop/zephyresp/zephyr/applications/peripheral'
+    source-dir: '/home/hadoop/zephyresp/zephyr/applications/peripheral'
+  board:
+    name: 'arduino_nano_33_ble'
+    path:
+     - '/home/hadoop/zephyresp/zephyr/boards/arduino/nano_33_ble'
+    qualifiers: 'nrf52840'
+    revision: ''
+  devicetree:
+    bindings-dirs:
+     - '/home/hadoop/zephyresp/zephyr/dts/bindings'
+    files:
+     - '/home/hadoop/zephyresp/zephyr/boards/arduino/nano_33_ble/arduino_nano_33_ble.dts'
+    include-dirs:
+     - '/home/hadoop/zephyresp/modules/hal/ambiq/dts'
+     - '/home/hadoop/zephyresp/modules/hal/atmel/include'
+     - '/home/hadoop/zephyresp/modules/hal/bouffalolab/include'
+     - '/home/hadoop/zephyresp/modules/hal/bouffalolab/include/zephyr'
+     - '/home/hadoop/zephyresp/modules/hal/gigadevice/include'
+     - '/home/hadoop/zephyresp/modules/hal/microchip/include'
+     - '/home/hadoop/zephyresp/modules/hal/microchip/dts'
+     - '/home/hadoop/zephyresp/modules/hal/nuvoton/dts'
+     - '/home/hadoop/zephyresp/modules/hal/nxp/dts'
+     - '/home/hadoop/zephyresp/modules/hal/stm32/dts'
+     - '/home/hadoop/zephyresp/modules/hal/ti/dts'
+     - '/home/hadoop/zephyresp/zephyr/include'
+     - '/home/hadoop/zephyresp/zephyr/include/zephyr'
+     - '/home/hadoop/zephyresp/zephyr/dts/common'
+     - '/home/hadoop/zephyresp/zephyr/dts/vendor'
+     - '/home/hadoop/zephyresp/zephyr/dts/rx'
+     - '/home/hadoop/zephyresp/zephyr/dts/x86'
+     - '/home/hadoop/zephyresp/zephyr/dts/xtensa'
+     - '/home/hadoop/zephyresp/zephyr/dts/sparc'
+     - '/home/hadoop/zephyresp/zephyr/dts/riscv'
+     - '/home/hadoop/zephyresp/zephyr/dts/posix'
+     - '/home/hadoop/zephyresp/zephyr/dts/arm64'
+     - '/home/hadoop/zephyresp/zephyr/dts/arm'
+     - '/home/hadoop/zephyresp/zephyr/dts/arc'
+     - '/home/hadoop/zephyresp/zephyr/dts'
+  kconfig:
+    files:
+     - '/home/hadoop/zephyresp/zephyr/boards/arduino/nano_33_ble/arduino_nano_33_ble_defconfig'
+     - '/home/hadoop/zephyresp/zephyr/applications/peripheral/prj.conf'
+    user-files:
+     - '/home/hadoop/zephyresp/zephyr/applications/peripheral/prj.conf'
+  toolchain:
+    name: 'zephyr'
+    path: '/home/hadoop/zephyr-sdk-1.0.1'
+  vendor-specific:
+    nordic:
+      svdfile: '/home/hadoop/zephyresp/modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840.svd'
+  zephyr:
+    version: '4.4.0-rc3'
+    zephyr-base: '/home/hadoop/zephyresp/zephyr'
+version: '0.1.0'
+west:
+  command: '/usr/bin/west build -p -b arduino_nano_33_ble'
+  topdir: '/home/hadoop/zephyresp'
+  version: '1.3.0'

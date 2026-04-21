@@ -1,0 +1,2 @@
+# Load Zephyr board Kconfig descriptions.
+osource "/home/hadoop/zephyresp/zephyr/boards/arduino/nano_33_ble/Kconfig"
