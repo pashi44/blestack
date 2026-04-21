@@ -1,24 +1,60 @@
 #include <zephyr/types.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
+
 #include <zephyr/logging/log.h>
+
 
 #define DEVICE_NAME  CONFIG_BT_DEVICE_NAME
 
 LOG_MODULE_REGISTER(Ble_sample_main, LOG_LEVEL_DBG);
 
+
+
+static const struct gpio_dt_spec led_blue = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 #if defined(CONFIG_BT)
 #include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/assigned_numbers.h>
 #include <zephyr/bluetooth/gap.h> //type of connection
 // #include <zephyr/bluetooth/uuid.h>
 #endif
 
-static const struct bt_data ad[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_NO_BREDR)),
-    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, sizeof(DEVICE_NAME) - 1)
+//manuall adv param PDU
+
+static const struct bt_le_adv_param adv_param =
+
+
+{
+
+	.id=  NULL,
+	.sid = NULL,	//advertising set identifier
+	.secondary_max_skip = NULL,
+
 };
 
-static unsigned char mygithub[] = {0x17, '/', '/', 'g', 'i', 't', 'h', 'u', 'b', '.', 'c',
+
+
+static const uint8_t ad_flags = BT_LE_AD_NO_BREDR;
+static const struct bt_data ad[] = {
+
+{
+
+	.type = (uint8_t)BT_DATA_BROADCAST_NAME,
+        .data_len = (uint8_t)1,
+        .data = &ad_flags,
+    },
+
+    // BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_NO_BREDR)),
+
+{
+	.type = BT_DATA_NAME_COMPLETE,
+	.data_len = sizeof(DEVICE_NAME) - 1,
+	.data = (uint8_t *)DEVICE_NAME
+}
+	
+    // BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, sizeof(DEVICE_NAME) - 1)
+};
+
+ static unsigned char mygithub[] = {0x17, '/', '/', 'g', 'i', 't', 'h', 'u', 'b', '.', 'c',
 				   'o',  'm', '/', 'p', 'a', 's', 'h', 'i', '4', '4'};
 
 // scan response PDUS
@@ -32,6 +68,16 @@ extern "C" {
 
 int main(void)
 {
+
+
+if (!gpio_is_ready_dt(&led_blue)) {
+        return  -ENODEV;
+    }
+    gpio_pin_configure_dt(&led_blue, GPIO_OUTPUT_ACTIVE);
+	if (!gpio_is_ready_dt(&led_blue)) {
+        return -ENODEV;
+    }else
+    gpio_pin_configure_dt(&led_blue, GPIO_OUTPUT_ACTIVE);
 
 	int err = bt_enable(NULL);
 
