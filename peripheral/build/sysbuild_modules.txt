@@ -1,1 +1,0 @@
-"mcuboot":"/home/hadoop/zephyresp/bootloader/mcuboot":"/home/hadoop/zephyresp/bootloader/mcuboot/boot/zephyr/sysbuild"

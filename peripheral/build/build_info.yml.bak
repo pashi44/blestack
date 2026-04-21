@@ -1,4 +1,0 @@
-west:
-  command: /usr/bin/west build -p -b arduino_nano_33_ble
-  topdir: /home/hadoop/zephyresp
-  version: 1.3.0
