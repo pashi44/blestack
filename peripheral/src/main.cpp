@@ -27,16 +27,16 @@ int main(void)
 
 	if (err) {
 		LOG_ERR("Bluetooth initialization failed\n");
-		return -ENODEV;
+ 	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
 	}
 
 	// starting le advert
-	err = bt_le_adv_start(
-
-		BT_LE_ADV_NCONN, Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
-		Ble_structs::scan_response, ARRAY_SIZE(Ble_structs::scan_response));
+	err = bt_le_adv_start( &Ble_structs::adv_param,
+		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
+		Ble_structs::scan_response, 
+		ARRAY_SIZE(Ble_structs::scan_response));
 	k_msleep(100);
 	if (err) {
 		LOG_ERR("Bluetooth advertising failed %d\t\n", err);
@@ -46,12 +46,16 @@ int main(void)
 		GPIO::Gpio::gpio_pulse(10000);
 	}
 
+// Ble_structs::Randomize_address();
+
+	
+
 	while (1) {
 		LOG_INF("spitting he serial signals fo rble\n");
 
-// Ble_structs::adv_mfg_config.custom_data++;
-//  k_sleep(K_MSEC(100));
- Ble_structs::button_changed();
+		// Ble_structs::adv_mfg_config.custom_data++;
+		//  k_sleep(K_MSEC(100));
+		Ble_structs::button_changed();
 		k_sleep(K_MSEC(1000));
 	}
 
