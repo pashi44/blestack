@@ -30,16 +30,15 @@ int main(void)
  	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
-		err = Ble_structs::Randomize_address();
 	}
-
-	err = Ble_structs::start_advertising();
+	
+	 Ble_structs::init();
+    err = Ble_structs::start_advertising();
+    if (err<0) {
+        LOG_ERR("Initial advertising failed\n");
+    }
 
 	while (1) {
-		LOG_INF("spitting he serial signals fo rble\n");
-
-		// Ble_structs::adv_mfg_config.custom_data++;
-		//  k_sleep(K_MSEC(100));
 		k_sleep(K_MSEC(1000));
 	}
 
