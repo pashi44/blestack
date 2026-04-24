@@ -78,6 +78,7 @@
     static inline bt_addr_le_t addr;
     static inline int random_id = BT_ID_DEFAULT;
 
+#if defined(CONFIG_BT) && defined(CONFIG_BT_ID_MAX)
     static int Randomize_address()
     {
         uint32_t ran = sys_rand32_get();
@@ -95,6 +96,9 @@
         return 0;
     }
 
+	#endif
+
+	#if defined(CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE)  && defined(CONFIG_BT_PERIPHERAL)
     /* State and callbacks */
     static inline struct k_work adv_work;
 
@@ -111,7 +115,7 @@
         printk("Disconnected (reason 0x%02x). Scheduling re-advertising...\n", reason);
         k_work_submit(&Ble_structs::adv_work);
     }
-
+ 
     static void adv_work_handler(struct k_work *work)
     {
         bt_le_adv_stop();
@@ -135,6 +139,9 @@
         k_work_init(&adv_work, adv_work_handler);
         bt_conn_cb_register(&conn_callbacks);
     }
+
+#endif
+
 };
 #endif // BT  || Perpherial
 #endif // BLE_STRUCTS_HPP
