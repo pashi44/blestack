@@ -63,7 +63,7 @@ struct Ble_structs {
 	};
 
 	// manuall adv param PDU
-	static inline const struct bt_le_adv_param adv_param = {
+	static inline struct bt_le_adv_param adv_param = {
 
 		.id = BT_ID_DEFAULT,
 		.sid = 0,
@@ -101,23 +101,57 @@ struct Ble_structs {
 		}
 	}
 
-	static inline bt_addr_le_t addr;
+	static inline  bt_addr_le_t addr;
+	static  inline int random_id = BT_ID_DEFAULT;
 
 	static int Randomize_address()
 	{
-		int err = bt_addr_le_from_str("00:00:00:00:00:00", "random", &Ble_structs::addr);
+		int err = bt_addr_le_from_str("D2:44:33:22:11:00", "random-id", &Ble_structs::addr);
 		if (err) {
 			return -EINVAL;
 		}
-		err = bt_id_create(&Ble_structs::addr, NULL);
+		err = bt_id_create(&Ble_structs::addr, NULL); //address to put on ,
+		// the other para is the IRK handled by l2adp layer
 		if (err < 0) {
-			return -EINVAL;
+			return err;
 		}
+		random_id=  err;
+		Ble_structs::adv_param.id = Ble_structs::random_id;	
+
 
 		return 0;
 	}
+
+
+// //resume the advertisation  after   central disconnection as ISR
+// static void   adv_work_handler(struct k_work *work){
+// int err= bt_le_adv_start(&Ble_structs::adv_param,
+// 		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
+// 		  Ble_structs::scan_response,
+// 		  ARRAY_SIZE(Ble_structs::scan_response));
+// 		  if(err) {
+// 			printk("Advertising failerd to start (err %d\n)",  err);
+// 			return -1;
+// 		  }else {
+// 			printk("Advertising started successfully\n");
+// 		  }
+// }
+
+// static void advertising_start(void)
+// {
+
+// k_work_submit(&adv_work_handler);
+// }
+
+
+// static void recycled_work(void){
+// 	printk("Connection object available from previous conn. Disconnect is complete!\n");
+// 	advertising_start();
+// }
+// BT_CONN_CB_DEFINE(conn_callbacks) = {
+// 	.recycled = recycled_work,				
+// };
 };
 
 #endif // BT  || Perpherial
 #endif // BLE_STRUCTS_HPP
-

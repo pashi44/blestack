@@ -5,6 +5,6 @@ One important consideration for connectable advertising is whether to resume adv
  to capture the .recycled event from the Bluetooth LE host and trigger the a work queue to
 restart advertising again.
 
-Note,  noptto call bt_le_adv_start()  directly from .recycled.  this advert fucnc call should 
+Note,  not to call bt_le_adv_start()  directly from .recycled.  this advert fucnc call should 
 be  treated as a callback handler or ISR . this ISR should be submitted  to workqueue once the 
 perpherial is disconneceted from the central . 

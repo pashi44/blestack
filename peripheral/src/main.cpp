@@ -30,6 +30,7 @@ int main(void)
  	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
+		Ble_structs::Randomize_address();
 	}
 
 	// starting le advert
@@ -46,7 +47,6 @@ int main(void)
 		GPIO::Gpio::gpio_pulse(10000);
 	}
 
-// Ble_structs::Randomize_address();
 
 	
 
@@ -55,7 +55,6 @@ int main(void)
 
 		// Ble_structs::adv_mfg_config.custom_data++;
 		//  k_sleep(K_MSEC(100));
-		Ble_structs::button_changed();
 		k_sleep(K_MSEC(1000));
 	}
 
