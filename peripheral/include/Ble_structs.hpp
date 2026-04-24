@@ -1,14 +1,10 @@
 
 #ifndef BLE_STRUCTS_HPP
 #define BLE_STRUCTS_HPP
-// #include <zephyr/logging/log.h>
-// LOG_MODULE_DECLARE(Ble_structs, LOG_LEVEL_DBG);
-
 #if defined(CONFIG_BT)
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/assigned_numbers.h>
-#include <zephyr/logging/log.h>
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 
 #define COMPANY_ID_CODE (0x0059)
@@ -101,8 +97,8 @@ struct Ble_structs {
 		}
 	}
 
-	static inline  bt_addr_le_t addr;
-	static  inline int random_id = BT_ID_DEFAULT;
+	static inline bt_addr_le_t addr;
+	static inline int random_id = BT_ID_DEFAULT;
 
 	static int Randomize_address()
 	{
@@ -110,47 +106,57 @@ struct Ble_structs {
 		if (err) {
 			return -EINVAL;
 		}
-		err = bt_id_create(&Ble_structs::addr, NULL); //address to put on ,
+		err = bt_id_create(&Ble_structs::addr, NULL); // address to put on ,
 		// the other para is the IRK handled by l2adp layer
 		if (err < 0) {
 			return err;
 		}
-		random_id=  err;
-		Ble_structs::adv_param.id = Ble_structs::random_id;	
-
+		random_id = err;
+		Ble_structs::adv_param.id = Ble_structs::random_id;
 
 		return 0;
 	}
 
+	// starting le advert
 
-// //resume the advertisation  after   central disconnection as ISR
-// static void   adv_work_handler(struct k_work *work){
-// int err= bt_le_adv_start(&Ble_structs::adv_param,
-// 		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
-// 		  Ble_structs::scan_response,
-// 		  ARRAY_SIZE(Ble_structs::scan_response));
-// 		  if(err) {
-// 			printk("Advertising failerd to start (err %d\n)",  err);
-// 			return -1;
-// 		  }else {
-// 			printk("Advertising started successfully\n");
-// 		  }
-// }
+	static  int  start_advertising(void)
+	{
 
-// static void advertising_start(void)
-// {
+		int err = bt_le_adv_start(&Ble_structs::adv_param, Ble_structs::ad,
+					  ARRAY_SIZE(Ble_structs::ad), Ble_structs::scan_response,
+					  ARRAY_SIZE(Ble_structs::scan_response));
+		k_msleep(100);
+		if (err < 0) {
+			err= -ENODEV;
+			return err;
+		} else {
+			GPIO::Gpio::gpio_pulse(5000);
+		}
+		return err;
+	}
 
-// k_work_submit(&adv_work_handler);
-// }
+	// resume the advertisation  after   central disconnection as ISR
+	static void adv_work_handler(struct k_work *work)
+	{
+		Ble_structs::start_advertising();
+	}
 
+	static void re_advertising_start(void)
+	{
 
-// static void recycled_work(void){
-// 	printk("Connection object available from previous conn. Disconnect is complete!\n");
-// 	advertising_start();
-// }
-// BT_CONN_CB_DEFINE(conn_callbacks) = {
-// 	.recycled = recycled_work,				
-// };
+		// k_work_submit(&adv_work);
+	}
+	static void recycled_work(void)
+	{
+		LOG_MODULE_DECLARE(ble_structs, CONFIG_LOG_DEFAULT_LEVEL);
+
+		LOG_INF("Connection object available from previous conn. Disconnect is "
+			"complete!\n");
+		re_advertising_start();
+	}
+	// BT_CONN_CB_DEFINE(conn_callbacks) = {
+	// .recycled = recycled_work,
+	// }; or
 };
 
 #endif // BT  || Perpherial

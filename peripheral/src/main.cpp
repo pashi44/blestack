@@ -30,25 +30,10 @@ int main(void)
  	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
-		Ble_structs::Randomize_address();
+		err = Ble_structs::Randomize_address();
 	}
 
-	// starting le advert
-	err = bt_le_adv_start( &Ble_structs::adv_param,
-		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
-		Ble_structs::scan_response, 
-		ARRAY_SIZE(Ble_structs::scan_response));
-	k_msleep(100);
-	if (err) {
-		LOG_ERR("Bluetooth advertising failed %d\t\n", err);
-		return -ENODEV;
-	} else {
-		LOG_INF("Ble advertising started\n");
-		GPIO::Gpio::gpio_pulse(10000);
-	}
-
-
-	
+	err = Ble_structs::start_advertising();
 
 	while (1) {
 		LOG_INF("spitting he serial signals fo rble\n");
