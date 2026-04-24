@@ -1,30 +1,14 @@
 #include <zephyr/types.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
-
-#define DEVICE_NAME  CONFIG_BT_DEVICE_NAME
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/gap.h> //type of connection
+#include "Gpio.hpp"
+#include "Ble_structs.hpp"
+// #include <zephyr/bluetooth/uuid.h>
 
 LOG_MODULE_REGISTER(Ble_sample_main, LOG_LEVEL_DBG);
-
-#if defined(CONFIG_BT)
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/assigned_numbers.h>
-#include <zephyr/bluetooth/gap.h> //type of connection
-// #include <zephyr/bluetooth/uuid.h>
-#endif
-
-static const struct bt_data ad[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_NO_BREDR)),
-    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, sizeof(DEVICE_NAME) - 1)
-};
-
-static unsigned char mygithub[] = {0x17, '/', '/', 'g', 'i', 't', 'h', 'u', 'b', '.', 'c',
-				   'o',  'm', '/', 'p', 'a', 's', 'h', 'i', '4', '4'};
-
-// scan response PDUS
-
-static const struct bt_data scan_response[] = { //0x09
-	BT_DATA(BT_DATA_URI, mygithub, sizeof(mygithub))};
 
 #ifdef __cplusplus__
 extern "C" {
@@ -33,30 +17,44 @@ extern "C" {
 int main(void)
 {
 
+#ifdef CONFIG_GPIO
+
+	GPIO::Gpio::gpio_init();
+	GPIO::Gpio::gpio_pulse(10);
+
+#endif // DEBUG
 	int err = bt_enable(NULL);
 
 	if (err) {
 		LOG_ERR("Bluetooth initialization failed\n");
-		return -ENODEV;
+ 	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
+		Ble_structs::Randomize_address();
 	}
 
 	// starting le advert
-	err = bt_le_adv_start(BT_LE_ADV_NCONN, ad, ARRAY_SIZE(ad),
-     scan_response,
-			      ARRAY_SIZE(scan_response));
-
+	err = bt_le_adv_start( &Ble_structs::adv_param,
+		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
+		Ble_structs::scan_response, 
+		ARRAY_SIZE(Ble_structs::scan_response));
+	k_msleep(100);
 	if (err) {
 		LOG_ERR("Bluetooth advertising failed %d\t\n", err);
 		return -ENODEV;
 	} else {
 		LOG_INF("Ble advertising started\n");
+		GPIO::Gpio::gpio_pulse(10000);
 	}
+
+
+	
 
 	while (1) {
 		LOG_INF("spitting he serial signals fo rble\n");
 
+		// Ble_structs::adv_mfg_config.custom_data++;
+		//  k_sleep(K_MSEC(100));
 		k_sleep(K_MSEC(1000));
 	}
 
