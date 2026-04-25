@@ -20,7 +20,7 @@ int main(void)
 #ifdef CONFIG_GPIO
 
 	GPIO::Gpio::gpio_init();
-	GPIO::Gpio::gpio_pulse(10);
+	// GPIO::Gpio::gpio_pulse( &GPIO::Gpio::led_blue, 100);
 
 #endif // DEBUG
 	int err = bt_enable(NULL);
@@ -30,31 +30,15 @@ int main(void)
  	return  -ENODEV;
 	} else {
 		LOG_INF("Ble initalized\n");
-		Ble_structs::Randomize_address();
 	}
-
-	// starting le advert
-	err = bt_le_adv_start( &Ble_structs::adv_param,
-		  Ble_structs::ad, ARRAY_SIZE(Ble_structs::ad),
-		Ble_structs::scan_response, 
-		ARRAY_SIZE(Ble_structs::scan_response));
-	k_msleep(100);
-	if (err) {
-		LOG_ERR("Bluetooth advertising failed %d\t\n", err);
-		return -ENODEV;
-	} else {
-		LOG_INF("Ble advertising started\n");
-		GPIO::Gpio::gpio_pulse(10000);
-	}
-
-
 	
+	 Ble_structs::init();
+    err = Ble_structs::start_advertising();
+    if (err<0) {
+        LOG_ERR("Initial advertising failed\n");
+    }
 
 	while (1) {
-		LOG_INF("spitting he serial signals fo rble\n");
-
-		// Ble_structs::adv_mfg_config.custom_data++;
-		//  k_sleep(K_MSEC(100));
 		k_sleep(K_MSEC(1000));
 	}
 
