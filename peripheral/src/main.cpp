@@ -20,7 +20,7 @@ int main(void)
 #ifdef CONFIG_GPIO
 
 	GPIO::Gpio::gpio_init();
-	GPIO::Gpio::gpio_pulse(10);
+	// GPIO::Gpio::gpio_pulse( &GPIO::Gpio::led_blue, 100);
 
 #endif // DEBUG
 	int err = bt_enable(NULL);
