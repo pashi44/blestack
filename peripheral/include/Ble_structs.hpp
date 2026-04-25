@@ -88,6 +88,8 @@ struct Ble_structs {
 			return -EINVAL;
 		}
 
+		bt_id_reset(ran, NULL, NULL);
+
 		err = bt_id_create(&Ble_structs::addr, NULL);
 		if (err < 0) {
 			return err;
@@ -95,7 +97,7 @@ struct Ble_structs {
 
 		random_id = err;
 		Ble_structs::adv_param.id = Ble_structs::random_id;
-		GPIO::Gpio::pulse_all(500);
+		GPIO::Gpio::pulse_all(5000);
 		return 0;
 	}
 
@@ -118,11 +120,7 @@ struct Ble_structs {
 
 	static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 	{
-		// printk("Disconnected (reason 0x%02x). Scheduling re-advertising...\n", reason);
-		// pwm_set_pulse_dt(&GPIO::Gpio::red_pwm_led, 0);
-		// pwm_set_pulse_dt(&GPIO::Gpio::green_pwm_led, 0);
-		// pwm_set_pulse_dt(&GPIO::Gpio::blue_pwm_led, 0);
-
+		printk("Disconnected (reason 0x%02x). Scheduling re-advertising...\n", reason);
          GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_red, 500);
 		k_work_submit(&Ble_structs::adv_work);
 	}
