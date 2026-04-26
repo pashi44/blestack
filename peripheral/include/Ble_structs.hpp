@@ -106,18 +106,18 @@ struct Ble_structs {
 #if defined(CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE) && defined(CONFIG_BT_PERIPHERAL)
 	/* State and callbacks */
 	static inline struct k_work adv_work;
-
+	
 	static int start_advertising(void)
 	{
 		int err = bt_le_adv_start(&Ble_structs::adv_param, Ble_structs::ad,
-					  ARRAY_SIZE(Ble_structs::ad), Ble_structs::scan_response,
-					  ARRAY_SIZE(Ble_structs::scan_response));
-		if (err < 0) {
-			return -ENODEV;
-		}else  GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_blue, 500);
-		return err;
-	}
-
+			ARRAY_SIZE(Ble_structs::ad), Ble_structs::scan_response,
+			ARRAY_SIZE(Ble_structs::scan_response));
+			if (err < 0) {
+				return -ENODEV;
+			}else  GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_blue, 500);
+			return err;
+		}
+#if  defined(CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE) && defined(CONFIG_BT_PERIPHERAL)
 	static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 	{
 		printk("Disconnected (reason 0x%02x). Scheduling re-advertising...\n", reason);
@@ -159,11 +159,14 @@ struct Ble_structs {
 		.recycled = recycled_cb,
 	};
 
+
+
 	static void init()
 	{
 		k_work_init(&adv_work, adv_work_handler);
 		bt_conn_cb_register(&conn_callbacks);
 	}
+	#endif // DEBUG
 
 #endif
 };
