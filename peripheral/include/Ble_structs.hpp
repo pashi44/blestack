@@ -6,7 +6,6 @@
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/assigned_numbers.h>
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
-
 #define COMPANY_ID_CODE (0x0059)
 
 #endif // CONFIG_BT
@@ -30,8 +29,6 @@
 */
 struct Ble_structs {
 	static inline const uint8_t ad_flags = BT_LE_AD_NO_BREDR;
-	
-
 	Ble_structs() = delete;
 	Ble_structs(const Ble_structs &) = delete;
 	Ble_structs &operator=(const Ble_structs &) = delete;
@@ -41,7 +38,6 @@ struct Ble_structs {
 		uint16_t custom_data;
 	};
 	static inline struct Ble_structs::adv_mfg_config adv_mfg_config = {COMPANY_ID_CODE, 0x00};
-
 	static inline const struct bt_data ad[] = {{
 							   .type = (uint8_t)BT_DATA_FLAGS,
 							   .data_len = (uint8_t)sizeof(ad_flags),
@@ -65,14 +61,12 @@ struct Ble_structs {
 		.interval_max = 160,
 		.peer = NULL,
 	};
-
 	static inline unsigned char mygithub[] = {0x17, '/', '/', 'g', 'i', 't', 'h',
 						  'u',  'b', '.', 'c', 'o', 'm', '/',
 						  'p',  'a', 's', 'h', 'i', '4', '4'};
 	static inline const struct bt_data scan_response[] = {
 		BT_DATA(BT_DATA_URI, Ble_structs::mygithub, sizeof(Ble_structs::mygithub)),
 	};
-
 	static inline bt_addr_le_t addr;
 	static inline int random_id = BT_ID_DEFAULT;
 
@@ -82,22 +76,20 @@ struct Ble_structs {
 		uint32_t ran = sys_rand32_get();
 		char addr_str[18];
 		snprintf(addr_str, sizeof(addr_str), "D2:44:33:22:11:%02X", (uint8_t)(ran & 0xFF));
-
 		int err = bt_addr_le_from_str(addr_str, "random", &Ble_structs::addr);
 		if (err) {
 			return -EINVAL;
 		}
-
 		bt_id_reset(ran, NULL, NULL);
-
 		err = bt_id_create(&Ble_structs::addr, NULL);
 		if (err < 0) {
 			return err;
 		}
-
 		random_id = err;
 		Ble_structs::adv_param.id = Ble_structs::random_id;
+#if defined(CONFIG_GPIO) && defined(CONFIG_PWM)
 		GPIO::Gpio::pulse_all(5000);
+	#endif
 		return 0;
 	}
 
@@ -114,14 +106,19 @@ struct Ble_structs {
 			ARRAY_SIZE(Ble_structs::scan_response));
 			if (err < 0) {
 				return -ENODEV;
-			}else  GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_blue, 500);
+			}else
+			#if defined(CONFIG_GPIO) && defined(CONFIG_PWM)
+			GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_blue, 500);
+			#endif
 			return err;
 		}
 #if  defined(CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE) && defined(CONFIG_BT_PERIPHERAL)
 	static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 	{
 		printk("Disconnected (reason 0x%02x). Scheduling re-advertising...\n", reason);
-         GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_red, 500);
+		#if defined(CONFIG_GPIO) && defined(CONFIG_PWM)
+		GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_red, 500);
+		#endif
 		k_work_submit(&Ble_structs::adv_work);
 	}
 
@@ -129,7 +126,6 @@ struct Ble_structs {
 	{
 		bt_le_adv_stop();
 		Randomize_address();
-
 		int err = Ble_structs::start_advertising();
 		if (err < 0) {
 			printk("advertisment failed from work handler\n");
@@ -148,9 +144,10 @@ struct Ble_structs {
 		if (err) {
 			printk("Connection failed (err 0x%02x)\n", err);
 			return;
-		}
-	GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_green, 500);
-
+		}else printk("Connected to %7d\n",  Ble_structs::random_id);
+		#if defined(CONFIG_GPIO) && defined(CONFIG_PWM)
+		GPIO::Gpio::gpio_pulse(&GPIO::Gpio::led_green, 500);
+		#endif
 	}
 
 	static inline struct bt_conn_cb conn_callbacks = {
@@ -158,9 +155,6 @@ struct Ble_structs {
 		.disconnected = on_disconnected,
 		.recycled = recycled_cb,
 	};
-
-
-
 	static void init()
 	{
 		k_work_init(&adv_work, adv_work_handler);

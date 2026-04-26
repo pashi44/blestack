@@ -20,7 +20,7 @@ struct Gpio {
 	Gpio() = delete;
 	~Gpio() = delete;
 
-#if defined(CONFIG_GPIO)
+#if defined(CONFIG_GPIO) && defined(CONFIG_PWM) 
 
 	static inline const struct gpio_dt_spec led_blue = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 	static inline const struct gpio_dt_spec led_green = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
@@ -46,9 +46,7 @@ struct Gpio {
 
 		ret = gpio_pin_configure_dt(&led_green, GPIO_OUTPUT_INACTIVE);
 		return ret;
-	}
-
-
+	}	
     //gpio _pulse defination
 	static int gpio_pulse(const struct gpio_dt_spec *led, uint16_t duration_ms)
 	{
@@ -71,8 +69,6 @@ static int pulse_all(uint16_t duration_ms) {
     gpio_pin_set_dt(&GPIO::Gpio::led_green, 0);
     return gpio_pin_set_dt(&GPIO::Gpio::led_blue, 0);
 }
-    
-
 #else
 	static int gpio_init()
 	{
@@ -82,11 +78,6 @@ static int pulse_all(uint16_t duration_ms) {
 	{
 		return 0;
 	}
-
-
-
-
-
 #endif // CONFIG_GPIO
 
 // pwm -rgb section
