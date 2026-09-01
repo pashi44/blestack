@@ -1,0 +1,97 @@
+
+
+
+
+
+// /* node '/soc/peripheral@40000000/gpio@842500'  non -secure  variant */
+// &gpio0{
+// compatible = "nordic,nrf-gpio";
+// gpio-controller;
+// status = "okay";
+// reg = < 0x842500 0x300 >;       /* in zephyr/dts/arm/nordic/nrf91_peripherals.dtsi:299 */
+// #gpio-cells = < 0x2 >;          /* in zephyr/dts/arm/nordic/nrf91_peripherals.dtsi:300 */
+// port = < 0x0 >;                 /* in zephyr/dts/arm/nordic/nrf91_peripherals.dtsi:302 */
+// gpiote-instance = < &gpiote >;  /* in zephyr/dts/arm/nordic/nrf91_peripherals.dtsi:303 */
+// status = "okay";                /* in zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi:152 */
+// phandle = < 0x8 >; 
+// };
+
+
+	// gpiote: gpiote1: gpiote@40031000 {
+			// compatible = "nordic,nrf-gpiote"; /* in zephyr/dts/arm/nordic/nrf91_ns.dtsi:79 */
+			// reg = < 0x40031000 0x1000 >;      /* in zephyr/dts/arm/nordic/nrf91_ns.dtsi:80 */
+			// interrupts = < 0x31 0x5 >;        /* in zephyr/dts/arm/nordic/nrf91_ns.dtsi:81 */
+			// instance = < 0x1 >;               /* in zephyr/dts/arm/nordic/nrf91_ns.dtsi:83 */
+			// status = "okay";                  /* in zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi:148 */
+			// phandle = < 0xe >;                /* in zephyr/dts/arm/nordic/nrf91_peripherals.dtsi:303 */
+		// };
+	// };
+
+// /* node '/soc/interrupt-controller@e000e100' defined in zephyr/dts/arm/armv8-m.dtsi:13 */
+		nvic: interrupt-controller@e000e100 {
+			#address-cells = < 0x1 >;            /* in zephyr/dts/arm/armv8-m.dtsi:14 */
+			compatible = "arm,v8m-nvic";         /* in zephyr/dts/arm/armv8-m.dtsi:15 */
+			reg = < 0xe000e100 0xc00 >;          /* in zephyr/dts/arm/armv8-m.dtsi:16 */
+			interrupt-controller;                /* in zephyr/dts/arm/armv8-m.dtsi:17 */
+			#interrupt-cells = < 0x2 >;          /* in zephyr/dts/arm/armv8-m.dtsi:18 */
+			arm,num-irq-priority-bits = < 0x3 >; /* in zephyr/dts/arm/nordic/nrf91_ns.dtsi:94 */
+			phandle = < 0x1 >;                   /* in zephyr/dts/arm/armv8-m.dtsi:10 */
+		};
+
+// / {
+//     /* Explicitly referencing the ARM Cortex-M33 NVIC Interrupt Controller */
+//     soc {
+//         nvic: interrupt-controller@e000e100 {
+//             compatible = "arm,v8m-nvic";
+//             reg = <0xe000e100 0xc00>;             /* ARM System Control Space (SCS) */
+//             interrupt-controller;
+//             #interrupt-cells = <2>;
+//             arm,num-irq-priority-bits = <3>;      /* 8 priority levels (3 bits) */
+//             status = "okay";
+//         };
+//     };
+// };
+
+// /* Explicit definition for Port 0 GPIO Controller */
+// &gpio0 {
+//     compatible = "nordic,nrf-gpio";
+//     reg = <0x50084000 0x1000>;                    /* nRF9151 P0 Base Address (Non-Secure) */
+//     gpio-controller;
+//     #gpio-cells = <2>;
+//     ngpios = <32>;                                /* 32 physical pins (P0.00 - P0.31) */
+//     port = <0>;
+//     status = "okay";
+// };
+
+// /* Explicit definition for GPIOTE Interrupt/Event Peripheral */
+// &gpiote {
+//     compatible = "nordic,nrf-gpiote";
+//     reg = <0x5000d000 0x1000>;                    /* nRF9151 GPIOTE Base Address (Non-Secure) */
+//     interrupts = <13 0>;                          /* NVIC IRQ Line 13, Priority 0 */
+//     status = "okay";
+// };
+
+/* Custom Onboard LED and Button definitions */
+/ {
+    aliases {
+        led0 = &custom_led0;
+        sw0  = &custom_button0;
+    };
+
+    custom_leds {
+        compatible = "gpio-leds";
+        custom_led0: led_0 {
+            gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;    /* Onboard LED 1 on Pin P0.02 */
+            label = "Onboard LED 1";
+        };
+    };
+
+    custom_buttons {
+        compatible = "gpio-keys";
+        custom_button0: button_0 {
+            gpios = <&gpio0 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; /* Button 1 on Pin P0.08 */
+            label = "Onboard Button 1";
+        };
+    };
+};
+
