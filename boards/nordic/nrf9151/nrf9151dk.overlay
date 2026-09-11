@@ -1,0 +1,58 @@
+/*
+ * nRF9151 DK - custom LED/button overlay
+ *
+ * gpio0 and gpiote (instance 1, Non-Secure @ 0x40031000) are already
+ * `status = "okay"` by default in nrf9151dk_nrf9151_common.dtsi - do
+ * NOT redeclare their reg/interrupts here; this overlay only adds the
+ * pin definitions the firmware needs.
+ *
+ * Pin facts below are from the nRF9151 DK Hardware User Guide, section
+ * 4.8 "Buttons and LEDs":
+ *   LED1 (led0) = P0.00, active-HIGH (driven through a power transistor)
+ *   LED2 (led1) = P0.01, active-HIGH
+ *   LED3 (led2) = P0.04, active-HIGH
+ *   LED4 (led3) = P0.05, active-HIGH
+ *   Button1 (sw0) = P0.08, active-LOW, no external pull-up
+ *
+ * main.cpp drives four LEDs (LED0_PIN..LED3_PIN via led0..led3 aliases),
+ * so all four must exist here -- the earlier draft only defined led0,
+ * which would fail DT_ALIAS(led1) etc. at build time.
+ */
+
+/ {
+	aliases {
+		led0 = &custom_led0;
+		led1 = &custom_led1;
+		led2 = &custom_led2;
+		led3 = &custom_led3;
+		sw0  = &custom_button0;
+	};
+
+	custom_leds {
+		compatible = "gpio-leds";
+		custom_led0: led_0 {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "Onboard LED 1";
+		};
+		custom_led1: led_1 {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Onboard LED 2";
+		};
+		custom_led2: led_2 {
+			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+			label = "Onboard LED 3";
+		};
+		custom_led3: led_3 {
+			gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+			label = "Onboard LED 4";
+		};
+	};
+
+	custom_buttons {
+		compatible = "gpio-keys";
+		custom_button0: button_0 {
+			gpios = <&gpio0 8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			label = "Onboard Button 1";
+		};
+	};
+};
