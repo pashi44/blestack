@@ -3,7 +3,7 @@
 
 extern "C" int main(void)
 {
-    gpio::leds_configure_as_output();
+    gpio::configure_leds();
     gpio::button_init();
 
     while (true) {
