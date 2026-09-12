@@ -5,6 +5,7 @@
 #include <zephyr/irq.h>
 #include <cstdint>
 
+LOG_MODULE_REGISTER(gpio_interrupt, LOG_LEVEL_DBG);
 namespace gpio {
 
 // This backend owns the GPIOTE interrupt and assumes nRF9151 DK wiring.
@@ -23,6 +24,12 @@ constexpr uint32_t LED2_PIN = 4U;
 constexpr uint32_t LED3_PIN = 5U;
 constexpr uint32_t BUTTON0_PIN = 8U;
 
+static volatile uint32_t * const p0_input =
+    reinterpret_cast<volatile uint32_t *>(registers::p0_base + 0x010UL);
+static volatile uint32_t * const button_pin_cnf =
+    reinterpret_cast<volatile uint32_t *>(
+        registers::p0_base + registers::pin_cnf + BUTTON0_PIN * sizeof(uint32_t));
+
 static volatile uint32_t &p0_outset = registers::at(registers::p0_base + registers::outset);
 static volatile uint32_t &p0_outclr = registers::at(registers::p0_base + registers::outclr);
 static volatile uint32_t &p0_dirset = registers::at(registers::p0_base + registers::dirset);
@@ -30,7 +37,13 @@ static volatile uint32_t &gpiote_events_port = registers::at(registers::gpiote_b
 static volatile uint32_t &gpiote_intenset = registers::at(registers::gpiote_base + registers::intenset);
 static volatile uint32_t &gpiote_intenclr = registers::at(registers::gpiote_base + registers::intenclr);
 
-constexpr uint32_t LED_PIN_MASK = (1U << LED0_PIN) | (1U << LED1_PIN) ;
+// NVIC ICPR starts at 0xE000E280; each 32-bit register covers 32 IRQs.
+static volatile uint32_t * const nvic_pending_clear =
+    reinterpret_cast<volatile uint32_t *>(
+        0xE000E280UL + (registers::gpiote_irq / 32U) * sizeof(uint32_t));
+constexpr uint32_t gpiote_nvic_mask = 1UL << (registers::gpiote_irq % 32U);
+
+constexpr uint32_t LED_PIN_MASK = (1U << LED0_PIN) | (1U << LED3_PIN) ;
                                 //    (1U << LED2_PIN) | (1U << LED3_PIN);
 
 constexpr uint32_t LED_ON_DURATION_MS = 10000U;
@@ -42,6 +55,10 @@ K_WORK_DELAYABLE_DEFINE(led_off_work, led_off_work_handler);
 void configure_leds(void)
 {
     constexpr uint32_t cnf_feature_mask = 0x00000003UL; /* DIR=Output, INPUT=Disconnect */
+
+    // Preload all four active-high LEDs low before making their pins outputs.
+    p0_outclr = (1U << LED0_PIN) | (1U << LED1_PIN) |
+                (1U << LED2_PIN) | (1U << LED3_PIN);
 
     volatile uint32_t *led_cnf_registers[] = {
         reinterpret_cast<volatile uint32_t *>(registers::p0_base + registers::pin_cnf + (LED0_PIN * 4U)),
@@ -66,33 +83,58 @@ static void led_off_work_handler(struct k_work *work)
 {
     ARG_UNUSED(work);
     p0_outclr = LED_PIN_MASK;
+    LOG_INF("LEDs off");
 }
 
 static void button_isr(const void *arg)
 {
     ARG_UNUSED(arg);
+    // A stale NVIC pending interrupt alone is not a button event.
+    if (gpiote_events_port == 0U) {
+        return;
+    }
+
     gpiote_events_port = 0;   /* Clear the GPIOTE port event */
     const uint32_t cleared_event = gpiote_events_port; // Complete the MMIO readback.
     (void)cleared_event;
+
+    // PORT is shared; a released button is not a current button press.
+    if ((*p0_input & (1UL << BUTTON0_PIN)) != 0U) {
+        LOG_DBG("Ignoring PORT event: button input is high (released)");
+        return;
+    }
+
     lit_the_leds();
+    LOG_INF("Button pressed, lighting LEDs for %u ms", LED_ON_DURATION_MS);
     k_work_schedule(&led_off_work,  K_MSEC(LED_ON_DURATION_MS)); //offloadingt the GPIO off
 }
 
 void button_init(void)
 {
+    irq_disable(registers::gpiote_irq);
     // Mask PORT before enabling SENSE, as required by section 6.5.2.
     gpiote_intenclr = registers::port_interrupt_mask;
-    *reinterpret_cast<volatile uint32_t *>(registers::p0_base + registers::pin_cnf + (BUTTON0_PIN * 4U)) =
-        (3UL << 2) | (3UL << 16); /* PULL=Pullup, SENSE=Low (active-low button) */
+    const uint32_t disabled_interrupts = gpiote_intenclr;
+    (void)disabled_interrupts; // Complete the peripheral interrupt-disable write.
+    // The DK has no external button pull-up. Establish the idle level before
+    // enabling SENSE; otherwise charging the pin can generate a startup event.
+    constexpr uint32_t button_pullup = 3UL << 2;
+    *button_pin_cnf = button_pullup; // Input connected, pull-up, SENSE disabled.
+    k_busy_wait(10); // Application settling margin, not a debounce interval.
+    const bool initially_released = (*p0_input & (1UL << BUTTON0_PIN)) != 0U;
+    LOG_DBG("Button input before SENSE: %s", initially_released ? "high" : "low");
+    *button_pin_cnf = button_pullup | (3UL << 16); // SENSE=Low.
 
     gpiote_events_port = 0;           /* 2. Clear any pending event */
+    const uint32_t cleared_event = gpiote_events_port;
+    (void)cleared_event; // Complete the event clear before clearing NVIC.
+    *nvic_pending_clear = gpiote_nvic_mask;
 
-    // Zephyr still installs the ISR and enables the NVIC line. IRQ numbers
-    // come from the datasheet; no devicetree/device binding is used here.
-    IRQ_CONNECT(registers::gpiote_irq, 4, button_isr, nullptr, 0);
-    irq_enable(registers::gpiote_irq);
-
+    IRQ_CONNECT(registers::gpiote_irq, 4, button_isr, nullptr, 0); //3,6 & 7 are soft priority uses in ble applications
+    // reinterpret_cast<volatile uint32_t const*>((0xE000E104UL) |=(1UL << 17));
+    
     gpiote_intenset = registers::port_interrupt_mask; /* 4. Re-enable PORT interrupt */
+    irq_enable(registers::gpiote_irq);
 }
 
 } // namespace gpio
