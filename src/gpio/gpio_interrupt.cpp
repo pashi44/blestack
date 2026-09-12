@@ -46,7 +46,7 @@ constexpr uint32_t gpiote_nvic_mask = 1UL << (registers::gpiote_irq % 32U);
 constexpr uint32_t LED_PIN_MASK = (1U << LED0_PIN) | (1U << LED3_PIN) ;
                                 //    (1U << LED2_PIN) | (1U << LED3_PIN);
 
-constexpr uint32_t LED_ON_DURATION_MS = 10000U;
+constexpr uint32_t LED_ON_DURATION_MS = 1000U;
 
 static void button_isr(const void *arg);
 static void led_off_work_handler(struct k_work *work);
@@ -89,52 +89,60 @@ static void led_off_work_handler(struct k_work *work)
 static void button_isr(const void *arg)
 {
     ARG_UNUSED(arg);
-    // A stale NVIC pending interrupt alone is not a button event.
+
     if (gpiote_events_port == 0U) {
         return;
     }
 
-    gpiote_events_port = 0;   /* Clear the GPIOTE port event */
+    // Acknowledge the source now so repeated IRQs cannot starve LED-off work.
+    gpiote_events_port = 0;
     const uint32_t cleared_event = gpiote_events_port; // Complete the MMIO readback.
     (void)cleared_event;
 
-    // PORT is shared; a released button is not a current button press.
+    // PORT is shared; only a currently low button input is a press.
     if ((*p0_input & (1UL << BUTTON0_PIN)) != 0U) {
-        LOG_DBG("Ignoring PORT event: button input is high (released)");
         return;
     }
 
     lit_the_leds();
     LOG_INF("Button pressed, lighting LEDs for %u ms", LED_ON_DURATION_MS);
-    k_work_schedule(&led_off_work,  K_MSEC(LED_ON_DURATION_MS)); //offloadingt the GPIO off
+    k_work_schedule(&led_off_work,  K_MSEC(LED_ON_DURATION_MS)); 
 }
 
 void button_init(void)
 {
     irq_disable(registers::gpiote_irq);
-    // Mask PORT before enabling SENSE, as required by section 6.5.2.
+
     gpiote_intenclr = registers::port_interrupt_mask;
     const uint32_t disabled_interrupts = gpiote_intenclr;
-    (void)disabled_interrupts; // Complete the peripheral interrupt-disable write.
-    // The DK has no external button pull-up. Establish the idle level before
-    // enabling SENSE; otherwise charging the pin can generate a startup event.
+    (void)disabled_interrupts; 
+
+
     constexpr uint32_t button_pullup = 3UL << 2;
     *button_pin_cnf = button_pullup; // Input connected, pull-up, SENSE disabled.
-    k_busy_wait(10); // Application settling margin, not a debounce interval.
+    k_busy_wait(10); // Let the pull-up settle; this is not button debounce.
     const bool initially_released = (*p0_input & (1UL << BUTTON0_PIN)) != 0U;
     LOG_DBG("Button input before SENSE: %s", initially_released ? "high" : "low");
     *button_pin_cnf = button_pullup | (3UL << 16); // SENSE=Low.
 
-    gpiote_events_port = 0;           /* 2. Clear any pending event */
+    gpiote_events_port = 0;           
     const uint32_t cleared_event = gpiote_events_port;
     (void)cleared_event; // Complete the event clear before clearing NVIC.
     *nvic_pending_clear = gpiote_nvic_mask;
 
     IRQ_CONNECT(registers::gpiote_irq, 4, button_isr, nullptr, 0); //3,6 & 7 are soft priority uses in ble applications
-    // reinterpret_cast<volatile uint32_t const*>((0xE000E104UL) |=(1UL << 17));
-    
-    gpiote_intenset = registers::port_interrupt_mask; /* 4. Re-enable PORT interrupt */
-    irq_enable(registers::gpiote_irq);
+
+
+    gpiote_intenset = registers::port_interrupt_mask; //Re-enable PORT interrupt 
+     irq_enable(registers::gpiote_irq)  ; 
+ /*
+ 
+ *reinterpret_cast<volatile uint32_t *>(
+    registers::nvic_base + 0x004UL 
+ ) |= (1UL << 17);   //  jump to non-secure  intrr setregister and mask at 17 th buit
+ //sets  the iset but it remais to toggle  can be cleared but didnt find the Iclr regisetr offset; lest stick to the apis for now 
+*/
+
 }
 
-} // namespace gpio
+}// namespace gpio

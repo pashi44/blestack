@@ -29,6 +29,7 @@ constexpr uint32_t port_interrupt_mask = 1UL << 31;
 
 /*the Dangerous NVI and GPIOTE eegister  tyo trigger th itterrupts*/
 constexpr uint32_t nvic_base = 0xE000E100UL;
+constexpr uint32_t nvic_IPR0 =  nvic_base + 0x300UL; // Interrupt Priority Register 0
 
 
 
