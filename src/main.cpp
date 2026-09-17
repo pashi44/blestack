@@ -1,10 +1,14 @@
 #include <zephyr/kernel.h>
+#include "gpio/nrf9151_registers.hpp"
 #include "gpio/gpio_interrupt.hpp"
 
 extern "C" int main(void)
 {
-    gpio::configure_leds();
-    gpio::button_init();
+    Gpios::configure_leds();
+    Gpios::button_init();
+
+
+
 
     while (true) {
         k_msleep(1000);
