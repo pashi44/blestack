@@ -1,9 +1,8 @@
-#pragma once 
 
 #include "gpio/nrf9151_registers.hpp"
 
 
-namespace I2c{
+namespace Registers::I2c{
  
 
 uint32_t  get_vendor_id(){
