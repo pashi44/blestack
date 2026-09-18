@@ -16,3 +16,23 @@
 		sw0 = &button0;    /* Board button 1: P0.08 */
 	};
 };
+
+
+&uart0 {
+status = "disabled";
+};
+&uart1 {
+
+status = "okay";
+};
+
+  &i2c0{
+	status = "disabled";
+  };
+
+&spi0{
+
+	status = "disabled";
+};
+
+

@@ -5,11 +5,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Preserve this project's default overlay, while allowing either a CMake
-# -DDTC_OVERLAY_FILE=... argument or the environment to override it.
-# if(NOT DEFINED DTC_OVERLAY_FILE AND NOT DEFINED ENV{DTC_OVERLAY_FILE})
-#   set(DTC_OVERLAY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/boards/nordic/nrf9151/nrf9151dk.overlay")
-# endif()
+# Board-named overlays are discovered by Zephyr; QEMU gets no Nordic overlay.
+# DTC_OVERLAY_FILE can still be provided explicitly by the caller.
 
 # Installation paths belong to each machine, not to this repository.
 # Accept -DZEPHYR_BASE=... or ZEPHYR_BASE from the environment; registered

@@ -40,7 +40,7 @@ constexpr uint32_t nvic_IPR0 = nvic_base + 0x300UL; // Interrupt Priority Regist
 
 namespace I2c {
 
-// compile time evaluation
+// share same as the Uart0 
 constexpr uint32_t i2c0master_s_base = 0x50008000UL;  
 constexpr uint32_t i2c0master_ns_base = 0x40008000UL;
 constexpr uint32_t i2c1master_s_base = 0x50009000UL;  

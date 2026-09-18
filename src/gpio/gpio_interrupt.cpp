@@ -1,6 +1,7 @@
 
 
 #include "gpio/gpio_interrupt.hpp"
+#include "gpio/nrf9151_registers.hpp"
 
 #include <zephyr/kernel.h>
 #include <zephyr/irq.h>

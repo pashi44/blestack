@@ -1,5 +1,5 @@
 #pragma once
-#include  "nrf9151_registers.hpp"
+// Hardware-independent declarations; the selected backend supplies definitions.
 namespace Gpios {
 
 extern void configure_leds(void);
