@@ -6,13 +6,6 @@ extern "C" int main(void)
 {
 
 
-
-
-
-
-
-
-
     while (true) {
         k_msleep(1000);
     }

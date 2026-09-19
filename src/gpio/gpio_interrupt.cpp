@@ -16,7 +16,6 @@ LOG_MODULE_REGISTER(gpio_interrupt, LOG_LEVEL_DBG);
     #error "Raw GPIO backend requires the nRF9151 DK"
     #endif
     #if defined(CONFIG_NRFX_GPIOTE)
-#error "Disable competing nrfx GPIOTE interrupt ownership for this raw backend"
 #endif
 
 // Raw nRF9151 DK wiring: GPIO0, active-high LEDs, active-low button.
@@ -142,7 +141,7 @@ void Gpios::button_init(void)
     IRQ_CONNECT(Registers::Gpio::gpiote_irq, 4, button_isr, nullptr, 0); //3,6 & 7 are soft priority uses in ble applications
 
 
-    gpiote_intenset = Registers::Gpio::port_interrupt_mask; //Re-enable PORT interrupt 
+    gpiote_intenset = Registers::Gpio::port_interrupt_mask; ///Re-enable PORT interrupt 
      irq_enable(Registers::Gpio::gpiote_irq)  ; 
  /*
  

@@ -17,7 +17,7 @@ namespace Gpio {
 constexpr uintptr_t p0_base = 0x40842500UL;
 constexpr uintptr_t gpiote_base = 0x40031000UL; // GPIOTE1, nonsecure
 constexpr unsigned gpiote_irq = 49U;
-#elif defined(CONFIG_TRUSTED_EXECUTION_SECURE)
+#elif (CONFIG_TRUSTED_EXECUTION_SECURE)
 constexpr uintptr_t p0_base = 0x50842500UL;
 constexpr uintptr_t gpiote_base = 0x5000D000UL; // GPIOTE0, secure
 constexpr unsigned gpiote_irq = 13U;
