@@ -1,0 +1,2 @@
+&hs3003 { status = "disabled"; };
+&bmm150 { status = "disabled"; };

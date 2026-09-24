@@ -1,0 +1,26 @@
+/* Explicitly preserve the requested assignment; board defaults differ. */
+&pinctrl {
+    imu_master_default: imu_master_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SCL, 0, 30)>, <NRF_PSEL(TWIM_SDA, 0, 31)>;
+            bias-pull-up;
+        };
+    };
+    imu_master_sleep: imu_master_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SCL, 0, 30)>, <NRF_PSEL(TWIM_SDA, 0, 31)>;
+            low-power-enable;
+        };
+    };
+};
+&i2c2 {
+    compatible = "nordic,nrf-twim";
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_STANDARD>;
+    pinctrl-0 = <&imu_master_default>;
+    pinctrl-1 = <&imu_master_sleep>;
+    pinctrl-names = "default", "sleep";
+};
+/* These share serial instance 2 and must stay disabled. UART0 is the console. */
+&spi2 { status = "disabled"; };
+&uart2 { status = "disabled"; };

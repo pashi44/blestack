@@ -1,0 +1,2 @@
+&hts221 { status = "disabled"; };
+&lsm9ds1_mag { status = "disabled"; };
